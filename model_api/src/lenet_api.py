@@ -139,6 +139,7 @@ def train_mnist(client_data_loaders, test_loader):
     epochs = 1
 
     model = Lenet().to(device)
+    model.load_state_dict(torch.load("newmode.pt", map_location=device))
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     criterion = torch.nn.CrossEntropyLoss()
     print("client data loader: ",client_data_loaders)

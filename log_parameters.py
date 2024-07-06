@@ -69,7 +69,7 @@ def test(model, test_loader, criterion, idx):
     accuracy = 100. * correct / len(test_loader.dataset)
     print(f'Test Loss: {test_loss:.4f}, Accuracy: {accuracy:.3f}%')
     
-    if idx == 10:  # Only plot confusion matrix for the last round (idx == 3)
+    if idx == 5:  # Only plot confusion matrix for the last round (idx == 3)
         cm = confusion_matrix(all_labels, all_predictions)
         plt.figure(figsize=(8, 6))
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False)
@@ -83,7 +83,7 @@ def test(model, test_loader, criterion, idx):
 model = Lenet().to(device)
 criterion = nn.CrossEntropyLoss()
 
-round = 10
+round = 5
 for i in range(round):
     model.load_state_dict(torch.load(f"model_round/model_server_round_{i+1}.pt", map_location=device))
     test(model, testloader, criterion, (i+1))

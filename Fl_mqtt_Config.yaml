@@ -2,7 +2,7 @@ Server:
   host: "192.168.101.218"
   port_mqtt: 1883
   ID: "server"
-  NUM_ROUND: 10
+  NUM_ROUND: 5
   NUM_DEVICE: 2
   time_between_two_round: 1
   round_state: "finished"
@@ -10,7 +10,7 @@ Server:
   dataset: mnist
   distribution_data: iid # iid or noniid
 
-  mode: FPP # FPP or FedAvg
+  mode: FedAvg # FPP or FedAvg
 
 Client:
   host: "192.168.101.218"
