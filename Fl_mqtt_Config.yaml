@@ -1,0 +1,25 @@
+Server:
+  host: "192.168.101.218"
+  port_mqtt: 1883
+  ID: "server"
+  NUM_ROUND: 10
+  NUM_DEVICE: 2
+  time_between_two_round: 1
+  round_state: "finished"
+  n_round: 0
+  dataset: mnist
+  distribution_data: iid # iid or noniid
+
+  mode: FPP # FPP or FedAvg
+
+Client:
+  host: "192.168.101.218"
+  start_line: 0
+  start_benign: 0
+  start_main_dga: 0
+  count: 0
+  alpha: 0.6
+  arr_num_line: [134, 279, 590, 111, 157, 196, 109, 659, 100, 126, 185,
+  145, 274, 264, 239, 89, 189, 206, 89, 145, 106, 825, 143, 134, 603, 114,
+  123, 374, 119, 124, 715, 376, 128, 101, 114, 249, 85, 224, 280, 69, 149,
+  62, 427, 130, 102, 102, 104, 116, 67, 139]

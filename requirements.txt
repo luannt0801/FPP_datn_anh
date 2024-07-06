@@ -1,0 +1,10 @@
+paho-mqtt==1.6.1
+torch 
+torchvision
+numpy
+ping3
+matplotlib
+scikit-learn
+pandas
+psutil
+tldextract
