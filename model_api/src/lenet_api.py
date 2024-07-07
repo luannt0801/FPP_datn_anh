@@ -132,10 +132,13 @@ def get_dataloader_for_client(train_dataset, dict_users, client_id):
     
     return data_loaders
 
+model = Lenet().to(device)
+torch.save(model.state_dict(), "saved_model/LENETModel.pt")
+
 def train_mnist(client_data_loaders, test_loader):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    learning_rate = 0.00001
+    learning_rate = server_config['learning_rate']
     epochs = 1
 
     model = Lenet().to(device)
@@ -177,13 +180,14 @@ def train_mnist(client_data_loaders, test_loader):
         accuracy = 100. * correct / len(test_loader.dataset)
         print(f'Epoch: {epoch}, Test Loss: {test_loss:.4f}, Accuracy: {accuracy:.3f}%')
  
-    torch.save({
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'loss': test_loss,
-        'accuracy': accuracy,
-        'prototypes': prototypes
-    }, "mymodel.pt")
+    # torch.save({
+    #     'model_state_dict': model.state_dict(),
+    #     'optimizer_state_dict': optimizer.state_dict(),
+    #     'loss': test_loss,
+    #     'accuracy': accuracy,
+    #     'prototypes': prototypes
+    # }, "mymodel.pt")
+
     # Normalize prototypes 
     for label in prototypes:
         protos, count = prototypes[label]
@@ -198,9 +202,10 @@ def train_mnist(client_data_loaders, test_loader):
 def calculate_server_prototypes(prototype_loader):
     server_prototypes = {}
     model = Lenet()
-    checkpoint = torch.load('mymodel.pt')
-    model.load_state_dict(checkpoint['model_state_dict'])
-    model.to(device)
+    # checkpoint = torch.load('/saved_model/LENETModel.pt')
+    # model.load_state_dict(checkpoint['model_state_dict'])
+    # model.to(device)
+    model.load_state_dict(torch.load("/saved_model/LENETModel.pt", map_location=device))
     model.eval()  
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(prototype_loader):
@@ -223,35 +228,41 @@ def calculate_server_prototypes(prototype_loader):
 
 def calculate_prototype_distance(client_trainres_protos, n_round, server_prototypes):
     server_proto = {label: torch.tensor(prototype_vector) for label, prototype_vector in server_prototypes.items()}
-                    #{label:(proto_server) for label, proto_server in server_prototypes.items()}
+    server_proto_tensor = torch.stack(list(server_proto.values()))
     clients_proto = {client_id: {label: torch.tensor(prototype_vector) for label, prototype_vector in prototypes.items()} for client_id, prototypes in client_trainres_protos.items()}
+    clients_proto_tensor = {client_id: torch.stack(list(protos.values())) for client_id, protos in clients_proto.items()}
 
+    print("Server Proto Tensor:", server_proto_tensor)
+    for client_id, tensor in clients_proto_tensor.items():
+        print(f"Client {client_id} Proto Tensor:", tensor)
     # print("\n Proto tren Server: ", server_proto)
     # print("\n Proto tren Client: ", clients_proto)
     dist_state_dict = OrderedDict()
-    for client_id, protos in clients_proto.items():
-        client_distances = {}
-        for label in server_proto.keys():
-            if label in protos:
-                distance = torch.nn.functional.pairwise_distance(server_proto[label], protos[label])
-                client_distances[label] = distance
-            else:
-                client_distances[label] = None 
-        dist_state_dict[client_id] = client_distances
+    for client_id, protos in clients_proto_tensor.items():
+        distance = torch.nn.functional.pairwise_distance(server_proto_tensor, protos)
+        distance = torch.mean(distance)
+        dist_state_dict[client_id] = distance
+        #client_distances[client_id] = distance
+        """for label in server_proto.keys():
+            distance = torch.nn.functional.pairwise_distance(server_proto[label], protos[str(label)])
+            distance = torch.mean(distance)
+            client_distances[label] = distance
+        """
+        dist_state_dict[client_id] = distance.item()
 
     print(f"Distance: {dist_state_dict}")  
     return dist_state_dict
 
 def calculate_penalty(dist_state_dict):
     penalty_lambda = {}
-    for client_id, distances_dict in dist_state_dict.items():
-        client_penalty = {}
-        for label, distance in distances_dict.items():
-            if distance is not None and distance != 0:
-                client_penalty[label] = 1 / distance
-            else:
-                client_penalty[label] = 1  
-        penalty_lambda[client_id] = client_penalty
+    for client_id, distance in dist_state_dict.items():
+        if distance is not None and distance != 0:
+            penalty_lambda[client_id] = 1 / distance
+        else:
+            penalty_lambda[client_id] = 1  # Hoặc có thể bỏ qua client này nếu khoảng cách không hợp lệ
+    for client_id, penalties in penalty_lambda.items():
+        print(f"Client {client_id} Penalty: {penalties}")
+
     return penalty_lambda
 
 

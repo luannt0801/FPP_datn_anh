@@ -310,7 +310,6 @@ class Server(MqttClient):
         # clear trainning time round
         self.client_training_times.clear()
 
-    
     def aggregated_models_with_Protos(self):
         # Khởi tạo một OrderedDict để lưu trữ tổng của các tham số của mỗi layer
 
@@ -321,27 +320,24 @@ class Server(MqttClient):
 
         for client_id, state_dict in self.client_trainres_dict.items():
             int_client_id = int(client_id.split('_')[1])
-            client_penalty = self.penalty_lambda.get(int_client_id, {})
+            client_penalty = self.penalty_lambda.get(client_id, 1)
             print(f"Client: {client_id}, Penalty: {client_penalty}")
             for key, value in state_dict.items():
                 if not isinstance(value, torch.Tensor):
                     value = torch.tensor(value, dtype=torch.float32)
-                full_key = key.split('.')[-1]
-                try:
-                    label = int(full_key)
-                except ValueError:
-                    continue
-                weight = client_penalty.get(label, 1)
+            
                 if key in sum_state_dict:
-                    sum_state_dict[key] += value * weight
+                    sum_state_dict[key] += value * client_penalty
                 else:
-                    sum_state_dict[key] = value * weight
-            weight_sum += sum(client_penalty.values())
+                    sum_state_dict[key] = value * client_penalty
+        
+            weight_sum += client_penalty
+    
         if weight_sum == 0:
             raise ValueError("Sum of weights is zero. Cannot normalize by zero.")
         
         avg_state_dict = OrderedDict((key, value / weight_sum) for key, value in sum_state_dict.items())
-        torch.save(avg_state_dict, f'model_round_{self.n_round}.pt')
+        torch.save(avg_state_dict, f'model_round/model_server_round_{self.n_round}.pt')
         torch.save(avg_state_dict, "saved_model/LENETModel.pt")
         self.client_trainres_dict.clear()
         self.penalty_lambda.clear()

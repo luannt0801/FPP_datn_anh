@@ -51,8 +51,8 @@ class FLClient():
         print(topic)
         if topic == "dynamicFL/req/"+self.client_id:
             self.handle_cmd(msg)
-        # elif topic == "dynamicFL/model/all_client":
-        #     self.handle_model(client, userdata, msg)
+        elif topic == "dynamicFL/model/all_client":
+            self.handle_model(client, userdata, msg)
         elif self.waiting:
             if "dynamicFL/wait/" in topic:
                 self.handle_recall(msg)
@@ -188,36 +188,3 @@ class FLClient():
         self.client._thread.join()
         print_log("client exits")
     
-    def do_wait(self):
-        print("do wait")
-        print_log(f"{self.client_id} is going into wait mode")
-        self.waiting = True
-        print(f"unsubscribe dynamicFL/req/{self.client_id}")
-        self.client.unsubscribe(f"dynamicFL/req/{self.client_id}")
-        print("unsubscribe(dynamicFL/req/{self.client_id}")
-        self.client.unsubscribe("dynamicFL/model/all_client")
-        print("unsubscribe dynamicFL/model/all_client")
-        self.client.unsubscribe(f"dynamicFL/res/{self.client_id}")
-        print("unsubscribe dynamicFL/join")
-        self.client.unsubscribe(f"dynamicFL/join")
-        print(f"subscribe dynamicFL/wait/{self.client_id}")
-        self.client.subscribe(f"dynamicFL/wait/{self.client_id}")
-
-    def do_recall(self):
-        print("do_recall")
-        print_log(f"{self.client_id} is being recalled")
-        self.waiting = False
-        print("subscribe topic= dynamicFL/model/all_client ")
-        self.client.subscribe(topic="dynamicFL/model/all_client")
-        print("subscribe topic= dynamicFL/req/ self.client_id")
-        self.client.subscribe(topic="dynamicFL/req/" + self.client_id)
-        print("subscribe topic= dynamicFL/res/self.client_id ")
-        self.client.subscribe(topic="dynamicFL/res/" + self.client_id)
-        print("publish topic= dynamicFL/join  payload=self.client_id ")
-        self.client.publish(topic="dynamicFL/join", payload=self.client_id)
-        print(" unsubscribe dynamicFL/wait/self.client_id ")
-        self.client.unsubscribe(f"dynamicFL/wait/{self.client_id}")
-
-        self.do_evaluate_connection()
-
-        print_log(f"{self.client_id} rejoined dynamicFL/join of {self.broker_name}")
