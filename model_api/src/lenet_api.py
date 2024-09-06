@@ -60,9 +60,9 @@ def get_dataset():
 
 
         # Tách dữ liệu train theo tỉ lệ 9:1
-        train_size = int(0.9 * len(train_dataset))
-        prototype_size = len(train_dataset) - train_size
-        train_dataset, prototype_dataset = random_split(train_dataset, [train_size, prototype_size])
+        test_size = int(0.3 * len(test_dataset))
+        prototype_size = len(test_dataset) - test_size
+        test_dataset, prototype_dataset = random_split(test_dataset, [test_size, prototype_size])
 
         train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
         test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
@@ -70,47 +70,93 @@ def get_dataset():
 
     return train_loader, test_loader, prototype_loader, train_dataset
 
-def sample_mnist_data(dataset, NUM_DEVICE):
-    if server_config['distribution_data'] == 'iid':
+# def sample_mnist_data(dataset, NUM_DEVICE):
+#     dataset_users = {i: np.array([], dtype='int64') for i in range(NUM_DEVICE)}
+#     targets = np.array(dataset.targets)
 
-        num_items = int(len(dataset)/NUM_DEVICE)
-        dict_users, all_idxs = {}, [i for i in range(len(dataset))]
-        for i in range(NUM_DEVICE):
-            dict_users[i] = set(np.random.choice(all_idxs, num_items,
-                                                replace=False))
-            all_idxs = list(set(all_idxs) - dict_users[i])
-            
-    elif server_config['distribution_data'] == 'noniid':
-        dict_users = {i: np.array([], dtype='int64') for i in range(NUM_DEVICE)}
-        labels = np.array(dataset.dataset.targets)[dataset.indices]
-        idxs = np.arange(len(labels))
-        idxs_labels = np.vstack((idxs, labels))
-        idxs_labels = idxs_labels[:, idxs_labels[1, :].argsort()]
-        idxs = idxs_labels[0, :]
-        # Ensure each client has at least one sample from each class
-        min_samples_per_class = 1
-        NUM_CLASSES = len(np.unique(labels))
-        for label in range(NUM_CLASSES):
-            label_idxs = idxs[idxs_labels[1] == label]
-            np.random.shuffle(label_idxs)
-            for i in range(NUM_DEVICE):
-                selected_idxs = label_idxs[i * min_samples_per_class: (i + 1) * min_samples_per_class]
-                dict_users[i] = np.concatenate((dict_users[i], selected_idxs), axis=0)
-        
-        # Distribute remaining samples
-        remaining_idxs = idxs[NUM_DEVICE * NUM_CLASSES:]
-        np.random.shuffle(remaining_idxs)
-
-        # Calculate the number of samples for each client
-        samples_per_client = len(remaining_idxs) // NUM_DEVICE
-        for i in range(NUM_DEVICE):
-            start_idx = i * samples_per_client
-            end_idx = (i + 1) * samples_per_client if i != NUM_DEVICE - 1 else len(remaining_idxs)
-            dict_users[i] = np.concatenate((dict_users[i], remaining_idxs[start_idx:end_idx]), axis=0)
-        for i in range(NUM_DEVICE):
-            print(f"Client {i} has {len(dict_users[i])} samples.")
+#     if server_config['distribution_data'] == 'iid':
+#         num_samples = len(dataset) // NUM_DEVICE
+#         all_indices = np.arange(len(dataset))
+#         np.random.shuffle(all_indices)
+#         for i in range(NUM_DEVICE):
+#             dataset_users[i] = all_indices[i * num_samples: (i + 1) * num_samples]
     
-    return dict_users
+#     elif server_config['distribution_data'] == 'noniid':
+#         min_size = 0
+#         while min_size < 10:
+#             idx_batch = [[] for _ in range(NUM_DEVICE)]
+#             for k in range(10):
+#                 idx_k = np.where(targets == k)[0]
+#                 np.random.shuffle(idx_k)
+#                 proportions = np.random.dirichlet(np.repeat(0.5, NUM_DEVICE))
+#                 proportions = np.array([p * (len(idx_j) < len(dataset) / NUM_DEVICE) for p, idx_j in zip(proportions, idx_batch)])
+#                 proportions = proportions / proportions.sum()
+#                 proportions = (np.cumsum(proportions) * len(idx_k)).astype(int)[:-1]
+#                 idx_batch = [idx_j + idx.tolist() for idx_j, idx in zip(idx_batch, np.split(idx_k, proportions))]
+#             min_size = min([len(idx_j) for idx_j in idx_batch])
+
+#         #for client_id in range(NUM_DEVICE):
+#         #    for k in range(num_class):
+#         #       if not any(targets[idx] == k for idx in idx_batch[client_id]):
+#         #           idx_k = np.where(targets == k) [0]
+#         #            np.random.shuffle(idx_k)
+#         #            idx_batch[client_id].append(idx_k[0])
+
+#         for j in range(NUM_DEVICE):
+#             np.random.shuffle(idx_batch[j])
+#             dataset_users[j] = np.hstack(idx_batch[j])
+
+#     return dataset_users
+
+def sample_mnist_data(dataset, num_devices):
+    alpha=1
+    dataset_users = {i: np.array([], dtype='int64') for i in range(num_devices)}
+    targets = np.array(dataset.targets)
+    num_classes = 10  # MNIST có 10 nhãn (0-9)
+    
+    if server_config['distribution_data'] == 'iid':
+        num_samples = len(dataset) // num_devices
+        all_indices = np.arange(len(dataset))
+        np.random.shuffle(all_indices)
+        for i in range(num_devices):
+            dataset_users[i] = all_indices[i * num_samples: (i + 1) * num_samples]
+
+    elif server_config['distribution_data'] == 'noniid':
+        # Chia dữ liệu non-IID với phân phối Dirichlet
+        idx_batch = [[] for _ in range(num_devices)]
+        
+        for k in range(num_classes):
+            idx_k = np.where(targets == k)[0]
+            np.random.shuffle(idx_k)
+            proportions = np.random.dirichlet([alpha] * num_devices)
+            proportions = np.array([p * len(idx_k) for p in proportions])
+            proportions = proportions.astype(int)
+            
+            # Adjust proportions to ensure sum equals to the total number of samples
+            while proportions.sum() < len(idx_k):
+                proportions[np.random.randint(0, num_devices)] += 1
+            while proportions.sum() > len(idx_k):
+                proportions[np.random.randint(0, num_devices)] -= 1
+            
+            split_idx_k = np.split(idx_k, np.cumsum(proportions)[:-1])
+            for i in range(num_devices):
+                idx_batch[i].extend(split_idx_k[i])
+        
+        for j in range(num_devices):
+            np.random.shuffle(idx_batch[j])
+            dataset_users[j] = np.array(idx_batch[j])
+        
+        for j in range(num_devices):
+            client_labels = targets[dataset_users[j]]
+            unique_labels = np.unique(client_labels)
+            missing_labels = set(range(num_classes)) - set(unique_labels)
+            if missing_labels:
+                for label in missing_labels:
+                    idx_k = np.where(targets == label)[0]
+                    chosen_idx = np.random.choice(idx_k, 1)
+                    dataset_users[j] = np.append(dataset_users[j], chosen_idx)
+
+    return dataset_users
 
 def get_dataloader_for_client(train_dataset, dict_users, client_id):
     number_client = client_id.split('_')[1]
@@ -138,7 +184,7 @@ torch.save(model.state_dict(), "saved_model/LENETModel.pt")
 def train_mnist(client_data_loaders, test_loader):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    learning_rate = server_config['learning_rate']
+    learning_rate = float(server_config['learning_rate'])
     epochs = 1
 
     model = Lenet().to(device)
@@ -205,7 +251,7 @@ def calculate_server_prototypes(prototype_loader):
     # checkpoint = torch.load('/saved_model/LENETModel.pt')
     # model.load_state_dict(checkpoint['model_state_dict'])
     # model.to(device)
-    model.load_state_dict(torch.load("/saved_model/LENETModel.pt", map_location=device))
+    model.load_state_dict(torch.load("saved_model/LENETModel.pt", map_location=device))
     model.eval()  
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(prototype_loader):
@@ -273,8 +319,9 @@ Running here
 def start_trainning_mnist():
     train_loader, test_loader, prototype_loader, train_dataset = get_dataset()
     dict_data_users = sample_mnist_data(dataset=train_dataset, NUM_DEVICE=NUM_DEVICE)
+
     # print("------------------------------")
-    # print(dict_data_users)
+    print(dict_data_users)
     client_data_loader = get_dataloader_for_client(client_id="client_0", train_dataset= train_dataset, dict_users=dict_data_users)
     models_statedict, prototypes = train_mnist(client_data_loader)
 

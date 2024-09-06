@@ -7,7 +7,7 @@ import paho.mqtt.subscribe as subscribe
 import paho.mqtt.client as mqtt
 import json
 import torch
-
+from collections  import Counter
 class FLClient():
     def __init__(self, client_id, broker_name):
         self.client_id = client_id
@@ -77,7 +77,16 @@ class FLClient():
         client_id = self.client_id
 
         _,_,test_loader,train_dataset = get_dataset()
-        dict_data_users = sample_mnist_data(dataset=train_dataset, NUM_DEVICE=server_config['NUM_DEVICE'])
+
+
+        dict_data_users = sample_mnist_data(dataset=train_dataset, num_devices=server_config['NUM_DEVICE'])
+        print(dict_data_users)
+        for i, user_data in dict_data_users.items():
+            print(f"Thiết bị {i}: {len(user_data)} mẫu")
+            print("-----------------------------------")
+            print(user_data)
+
+            
         client_data_loader = get_dataloader_for_client(client_id=self.client_id, train_dataset= train_dataset, dict_users=dict_data_users)
         result, protos = train_mnist(client_data_loader, test_loader)
 
@@ -91,7 +100,6 @@ class FLClient():
             "protos": protos
         }
         self.client.publish(topic="dynamicFL/res/" + client_id, payload=json.dumps(payload))
-        print_log(f"end training")
 
     def do_evaluate_data(self):
         print("do_evaluate_data")

@@ -242,3 +242,127 @@ round 10: 24.01264238357544
 Remove to wait: []
 client_1: 22.608618021011353 seconds
 client_0: 22.276400804519653 seconds
+round 1: 92.35907125473022
+Remove to wait: []
+client_0: 69.35830497741699 seconds
+client_1: 83.66270875930786 seconds
+round 1: 65.15200996398926
+Remove to wait: []
+client_0: 56.525471687316895 seconds
+client_1: 48.72667574882507 seconds
+round 1: 63.027740716934204
+Remove to wait: []
+client_0: 50.080501317977905 seconds
+client_1: 56.48349905014038 seconds
+round 1: 64.1121141910553
+Remove to wait: []
+client_0: 57.91513180732727 seconds
+client_1: 48.82253408432007 seconds
+round 1: 72.21971273422241
+Remove to wait: []
+client_1: 51.772462368011475 seconds
+client_0: 61.662694454193115 seconds
+round 1: 69.12360191345215
+Remove to wait: []
+client_0: 61.264185190200806 seconds
+client_1: 55.57891511917114 seconds
+round 2: 91.30377650260925
+Remove to wait: []
+client_0: 82.16261696815491 seconds
+client_1: 76.88930869102478 seconds
+round 3: 72.03006434440613
+Remove to wait: []
+client_0: 63.358004093170166 seconds
+client_1: 54.058297634124756 seconds
+round 1: 74.02986025810242
+Remove to wait: []
+client_0: 67.32636594772339 seconds
+client_1: 62.31003737449646 seconds
+round 1: 60.026610136032104
+Remove to wait: []
+client_0: 45.52574586868286 seconds
+client_1: 51.585684061050415 seconds
+round 2: 62.02588963508606
+Remove to wait: []
+client_1: 38.3707218170166 seconds
+client_0: 53.439802169799805 seconds
+round 3: 61.14946985244751
+Remove to wait: []
+client_0: 52.330060958862305 seconds
+client_1: 43.6495623588562 seconds
+round 4: 60.094881534576416
+Remove to wait: []
+client_0: 48.15814661979675 seconds
+client_1: 50.755494356155396 seconds
+round 5: 63.139302253723145
+Remove to wait: []
+client_0: 54.10288715362549 seconds
+client_1: 49.31599140167236 seconds
+round 6: 62.08028721809387
+Remove to wait: []
+client_0: 48.57914924621582 seconds
+client_1: 54.0001106262207 seconds
+round 7: 62.15439820289612
+Remove to wait: []
+client_0: 53.774758100509644 seconds
+client_1: 46.878875970840454 seconds
+round 8: 65.03758215904236
+Remove to wait: []
+client_0: 57.41255283355713 seconds
+client_1: 51.53728723526001 seconds
+round 9: 60.02336835861206
+Remove to wait: []
+client_1: 51.99931526184082 seconds
+client_0: 48.40852880477905 seconds
+round 10: 71.03055810928345
+Remove to wait: []
+client_1: 49.72509551048279 seconds
+client_0: 63.58043575286865 seconds
+round 1: 70.0473952293396
+Remove to wait: []
+client_0: 45.211339712142944 seconds
+client_1: 59.585694313049316 seconds
+round 1: 27.213290691375732
+Remove to wait: []
+client_0: 25.620322704315186 seconds
+client_1: 20.719723224639893 seconds
+round 2: 29.42155694961548
+Remove to wait: []
+client_0: 22.960622787475586 seconds
+client_1: 28.13820457458496 seconds
+round 3: 20.014697313308716
+Remove to wait: []
+client_0: 18.37024235725403 seconds
+client_1: 17.441229820251465 seconds
+round 4: 22.41672158241272
+Remove to wait: []
+client_0: 20.677608966827393 seconds
+client_1: 17.345648050308228 seconds
+round 5: 24.17037796974182
+Remove to wait: []
+client_0: 19.731977939605713 seconds
+client_1: 22.34002923965454 seconds
+round 6: 24.012433290481567
+Remove to wait: []
+client_1: 22.68049120903015 seconds
+client_0: 22.31376886367798 seconds
+round 7: 29.017623901367188
+Remove to wait: []
+client_0: 27.36929678916931 seconds
+client_1: 20.482535123825073 seconds
+round 8: 28.18948721885681
+Remove to wait: []
+client_0: 22.709253072738647 seconds
+client_1: 26.674436569213867 seconds
+round 9: 29.156737089157104
+Remove to wait: []
+client_0: 26.73336625099182 seconds
+client_1: 27.53994846343994 seconds
+round 10: 31.0125572681427
+Remove to wait: []
+client_0: 29.64034152030945 seconds
+client_1: 29.282686471939087 seconds
+round 1: 38.15023899078369
+Remove to wait: []
+client_0: 36.67684459686279 seconds
+client_1: 26.094860076904297 seconds
